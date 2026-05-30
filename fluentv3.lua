@@ -6325,16 +6325,15 @@ ElementsTable.Slider = (function()
 			TextSize = 12,
 			TextXAlignment = Enum.TextXAlignment.Right,
 			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-			BackgroundTransparency = 0.8,
+			BackgroundTransparency = 1,  -- fully transparent when not focused
 			Size = UDim2.new(0, 0, 0, 14),
 			Position = UDim2.new(0, -4, 0.5, 0),
 			AnchorPoint = Vector2.new(1, 0.5),
-			PlaceholderText = "Value",
+			PlaceholderText = "",        -- remove placeholder
 			ClearTextOnFocus = false,
 			Visible = true,
 			TextWrapped = false,
 			TextTransparency = 1,
-			BackgroundTransparency = 1,
 			ThemeTag = {
 				TextColor3 = "SubText",
 				BackgroundColor3 = "Element",
@@ -6346,7 +6345,7 @@ ElementsTable.Slider = (function()
 			New("UIStroke", {
 				ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
 				Color = Color3.fromRGB(0, 0, 0),
-				Transparency = 1,
+				Transparency = 1,        -- hidden by default
 				Thickness = 1,
 			}),
 		})
@@ -6421,15 +6420,15 @@ ElementsTable.Slider = (function()
 				updateInputWidth(tostring(Slider.Value), false)
 				inputVisible = true
 
-				local tweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+				local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
 				TweenService:Create(SliderInput, tweenInfo, {
 					TextTransparency = 0,
-					BackgroundTransparency = 0.8
+					BackgroundTransparency = 0.85   -- slight background on hover
 				}):Play()
 
 				TweenService:Create(SliderInput.UIStroke, tweenInfo, {
-					Transparency = 0.7
+					Transparency = 0.4               -- soft border
 				}):Play()
 			end
 		end)
@@ -6480,9 +6479,10 @@ ElementsTable.Slider = (function()
 
 		Creator.AddSignal(SliderInput.FocusLost, function(enterPressed)
 			local inputValue = tonumber(SliderInput.Text)
-			if inputValue then
+			if inputValue ~= nil then
 				Slider:SetValue(inputValue)
 			else
+				-- revert to previous value if input is invalid or empty
 				SliderInput.Text = tostring(Slider.Value)
 				updateInputWidth(tostring(Slider.Value), true)
 			end
