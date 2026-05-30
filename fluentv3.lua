@@ -6319,24 +6319,23 @@ ElementsTable.Slider = (function()
 			},
 		})
 
+		-- Ô nhập số - hoàn toàn trong suốt, không nền, không viền
 		local SliderInput = New("TextBox", {
 			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
 			Text = "",
 			TextSize = 12,
 			TextXAlignment = Enum.TextXAlignment.Right,
-			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-			BackgroundTransparency = 1,  -- fully transparent when not focused
+			BackgroundTransparency = 1,
 			Size = UDim2.new(0, 0, 0, 14),
 			Position = UDim2.new(0, -4, 0.5, 0),
 			AnchorPoint = Vector2.new(1, 0.5),
-			PlaceholderText = "",        -- remove placeholder
+			PlaceholderText = "",
 			ClearTextOnFocus = false,
 			Visible = true,
 			TextWrapped = false,
 			TextTransparency = 1,
 			ThemeTag = {
 				TextColor3 = "SubText",
-				BackgroundColor3 = "Element",
 			},
 		}, {
 			New("UICorner", {
@@ -6345,7 +6344,7 @@ ElementsTable.Slider = (function()
 			New("UIStroke", {
 				ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
 				Color = Color3.fromRGB(0, 0, 0),
-				Transparency = 1,        -- hidden by default
+				Transparency = 1,
 				Thickness = 1,
 			}),
 		})
@@ -6411,48 +6410,34 @@ ElementsTable.Slider = (function()
 			end
 		end
 
+		-- Hover: ẩn label, hiện input (chỉ hiện chữ, không nền/viền)
 		Creator.AddSignal(SliderFrame.Frame.MouseEnter, function()
 			isHovering = true
 			if not SliderInput:IsFocused() then
 				SliderDisplay.Visible = false
 				SliderInput.Text = tostring(Slider.Value)
-
 				updateInputWidth(tostring(Slider.Value), false)
 				inputVisible = true
-
-				local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-
-				TweenService:Create(SliderInput, tweenInfo, {
+				TweenService:Create(SliderInput, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
 					TextTransparency = 0,
-					BackgroundTransparency = 0.85   -- slight background on hover
-				}):Play()
-
-				TweenService:Create(SliderInput.UIStroke, tweenInfo, {
-					Transparency = 0.4               -- soft border
 				}):Play()
 			end
 		end)
 
+		-- Rời chuột: ẩn input, hiện label
 		Creator.AddSignal(SliderFrame.Frame.MouseLeave, function()
 			isHovering = false
 			if not SliderInput:IsFocused() and inputVisible then
-				local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
-
-				TweenService:Create(SliderInput, tweenInfo, {
+				TweenService:Create(SliderInput, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
 					TextTransparency = 1,
-					BackgroundTransparency = 1
 				}):Play()
-
-				TweenService:Create(SliderInput.UIStroke, tweenInfo, {
-					Transparency = 1
-				}):Play()
-
 				task.wait(0.2)
 				SliderDisplay.Visible = true
 				inputVisible = false
 			end
 		end)
 
+		-- Lọc số khi gõ
 		Creator.AddSignal(SliderInput.Changed, function(property)
 			if property == "Text" then
 				local text = SliderInput.Text
@@ -6477,39 +6462,33 @@ ElementsTable.Slider = (function()
 			end
 		end)
 
+		-- Focus: không thay đổi nền/viền, chỉ cập nhật text
+		Creator.AddSignal(SliderInput.Focused, function()
+			SliderInput.Text = tostring(Slider.Value)
+			updateInputWidth(tostring(Slider.Value), false)
+		end)
+
+		-- Mất focus: cập nhật giá trị
 		Creator.AddSignal(SliderInput.FocusLost, function(enterPressed)
 			local inputValue = tonumber(SliderInput.Text)
 			if inputValue ~= nil then
 				Slider:SetValue(inputValue)
 			else
-				-- revert to previous value if input is invalid or empty
 				SliderInput.Text = tostring(Slider.Value)
 				updateInputWidth(tostring(Slider.Value), true)
 			end
 
 			if not isHovering then
-				local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
-
-				TweenService:Create(SliderInput, tweenInfo, {
+				TweenService:Create(SliderInput, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
 					TextTransparency = 1,
-					BackgroundTransparency = 1
 				}):Play()
-
-				TweenService:Create(SliderInput.UIStroke, tweenInfo, {
-					Transparency = 1
-				}):Play()
-
 				task.wait(0.2)
 				SliderDisplay.Visible = true
 				inputVisible = false
 			end
 		end)
 
-		Creator.AddSignal(SliderInput.Focused, function()
-			SliderInput.Text = tostring(Slider.Value)
-			updateInputWidth(tostring(Slider.Value), false)
-		end)
-
+		-- Kéo slider
 		Creator.AddSignal(SliderInput.InputBegan, function(Input)
 			if Input.UserInputType == Enum.UserInputType.MouseButton1 then
 				Dragging = false
@@ -6517,19 +6496,13 @@ ElementsTable.Slider = (function()
 		end)
 
 		Creator.AddSignal(SliderDot.InputBegan, function(Input)
-			if
-				Input.UserInputType == Enum.UserInputType.MouseButton1
-				or Input.UserInputType == Enum.UserInputType.Touch
-			then
+			if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
 				Dragging = true
 			end
 		end)
 
 		Creator.AddSignal(SliderDot.InputEnded, function(Input)
-			if
-				Input.UserInputType == Enum.UserInputType.MouseButton1
-				or Input.UserInputType == Enum.UserInputType.Touch
-			then
+			if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
 				Dragging = false
 			end
 		end)
